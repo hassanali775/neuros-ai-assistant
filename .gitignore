@@ -1,0 +1,30 @@
+# Frontend Dependencies & Build Artifacts
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# Backend Dependencies & Python Artifacts
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+backend/.pytest_cache/
+backend/env/
+backend/venv/
+backend/ENV/
+
+# Environment Variables & Secrets (CRITICAL)
+.env
+.env.local
+.env.production
+backend/.env
+frontend/.env.local
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE Settings
+.vscode/
+.idea/

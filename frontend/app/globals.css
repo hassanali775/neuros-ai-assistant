@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Variables ────────────────────────────────────────────────────────── */
+
+:root {
+  --background: #0a0a0f;
+  --surface: #0f0f18;
+  --surface-2: #141420;
+  --border: rgba(255, 255, 255, 0.06);
+  --accent-primary: #7c3aed;
+  --accent-secondary: #06b6d4;
+  --text-primary: #e5e5e5;
+  --text-muted: #737373;
+  --text-ghost: #2a2a3a;
+  --radius: 0.75rem;
+}
+
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+}
+
+/* ─── Scrollbar ────────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.07) transparent;
+}
+
+/* ─── Animations ───────────────────────────────────────────────────────────── */
+
+@keyframes neuros-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes neuros-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes neuros-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: neuros-fade-in 0.25s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: neuros-slide-in 0.2s ease-out forwards;
+}
+
+/* ─── Grid scan line overlay ───────────────────────────────────────────────── */
+
+.scanline-overlay {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.015) 2px,
+    rgba(255, 255, 255, 0.015) 4px
+  );
+  pointer-events: none;
+}
+
+/* ─── Prose (markdown) styles ──────────────────────────────────────────────── */
+
+.prose-neuros {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.prose-neuros p {
+  margin-bottom: 0.75rem;
+}
+
+.prose-neuros p:last-child {
+  margin-bottom: 0;
+}
+
+.prose-neuros ul,
+.prose-neuros ol {
+  margin-bottom: 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.prose-neuros li {
+  margin-bottom: 0.25rem;
+}
+
+.prose-neuros strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.prose-neuros em {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.prose-neuros hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin: 1rem 0;
+}
+
+/* ─── Cursor blink (streaming) ─────────────────────────────────────────────── */
+
+.streaming-cursor::after {
+  content: "▋";
+  animation: neuros-pulse 0.8s ease-in-out infinite;
+  color: #7c3aed;
+  font-size: 0.875em;
+  margin-left: 1px;
+}
