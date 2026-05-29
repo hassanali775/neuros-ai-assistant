@@ -1,167 +1,55 @@
-# NEUROS — AI Operating System Assistant
+# NEUROS
 
-> Production-grade AI desktop assistant · Phase 1: Foundation
-
----
-
-## Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 15 · TypeScript · TailwindCSS · Zustand |
-| Backend | FastAPI · SQLAlchemy · SQLite (async) |
-| AI | Ollama (llama3, mistral, etc.) |
-| Deployment | Docker Compose |
+> **NEUROS** is a high-performance, AI-native operating system assistant designed to operate fully locally on consumer-grade hardware. By pairing an asynchronous backend framework with a lightning-fast streaming interface, NEUROS establishes a secure, private environment for advanced conversational logic and local file intelligence.
 
 ---
 
-## Prerequisites
+## 🛠️ Core Architecture & Tech Stack
 
-- [Node.js 20+](https://nodejs.org)
-- [Python 3.11+](https://python.org)
-- [Ollama](https://ollama.com) installed and running
+NEUROS is structured as a decoupled, high-performance monorepo maximizing modern asynchronous protocols:
+
+* **Frontend Interface:** Built using **Next.js 15**, **TypeScript**, and **Tailwind CSS**. State synchronization and non-blocking streaming data flows are managed via a centralized **Zustand** store architecture.
+* **Backend Service:** Powering the application layer is **FastAPI (Python)**, utilizing asynchronous request pooling, custom routers, and structured **Pydantic** validation pipelines.
+* **Local Inference Engine:** Driven entirely by **Ollama**, orchestrating local deployment of the **Llama 3** model over a persistent localhost loopback adapter—ensuring 100% data privacy with zero third-party API dependencies.
+
+---
+## 🚀 Key Engineering Features
+
+* **Asynchronous Local Inference:** Non-blocking streaming chat loops utilizing Server-Sent Events (SSE) to deliver token-by-token processing directly from local hardware.
+* **State Synchronization:** Fully unified global frontend state utilizing Zustand, enabling optimistic UI updates, multi-model selection polling, and elegant sidebar interaction.
+* **Strict Type Safety:** Complete end-to-end type safety mapping Pydantic schemas in the backend to TypeScript interfaces in the frontend, mitigating data-structure mutations.
+* **Production Build Management:** Fully containerized setup leveraging a multi-stage Docker environment alongside orchestrated multi-container setups for seamless local deployment.
 
 ---
 
-## Quick Start (Local Development)
+## 📂 Repository Blueprint
 
-### 1. Install & Start Ollama
-
-```bash
-# macOS / Linux
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Pull default model
-ollama pull llama3
-```
-
-### 2. Backend
-
-```bash
-cd backend
-
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Copy and configure environment
-cp .env.example .env
-
-# Start the API server
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-API docs available at: http://localhost:8000/api/docs
-
-### 3. Frontend
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Copy and configure environment
-cp .env.local.example .env.local
-
-# Start dev server
-npm run dev
-```
-
-App available at: http://localhost:3000
-
----
-
-## Docker Compose (Full Stack)
-
-```bash
-# Build and start all services
-docker compose up --build
-
-# Pull llama3 into the Ollama container
-docker exec -it neuros-ollama ollama pull llama3
-```
-
-Services:
-- Frontend → http://localhost:3000
-- Backend API → http://localhost:8000
-- Ollama → http://localhost:11434
-
----
-
-## Project Structure
-
-```
+```text
 neuros/
-├── backend/                # FastAPI application
-│   ├── main.py             # App entry, CORS, routers
-│   ├── config.py           # Pydantic settings
-│   ├── models/             # Database ORM + Pydantic schemas
-│   ├── routers/            # API route handlers
-│   ├── services/           # Business logic layer
-│   └── storage/uploads/    # Uploaded files
-│
-├── frontend/               # Next.js 15 application
-│   ├── app/                # App router pages + layouts
-│   ├── components/         # React components
-│   │   ├── chat/           # Chat-specific components
-│   │   └── layout/         # Layout shell components
-│   ├── hooks/              # Custom React hooks
-│   ├── lib/                # API client + utilities
-│   ├── store/              # Zustand global state
-│   └── types/              # TypeScript type definitions
-│
-└── docker-compose.yml      # Multi-service orchestration
-```
+├── frontend/             # Next.js 15 App Router Frontend
+│   ├── app/              # UI Routing & Core Pages
+│   ├── components/       # Component Library (Chat, Layout, UI)
+│   ├── store/            # Zustand State Management Store
+│   └── hooks/            # Contextual Custom Hooks (useChat, useModels)
+├── backend/              # FastAPI High-Performance Backend
+│   ├── models/           # SQLAlchemy Database Structures & Migrations
+│   ├── routers/          # Modularized Endpoint Routers (Chat, Files)
+│   ├── services/         # Core Business Logic Layers (Ollama Orchestrator)
+│   └── main.py           # Application Gateway & Lifespan Hooks
+├── docker-compose.yml    # Multi-Service Local Container Orchestration
+└── .gitignore            # Explicit Repository Security Filter
+---
+
+## 🔮 Strategic Development Roadmap
+
+To elevate NEUROS from a local core architecture into a production-grade enterprise asset, development is structured across the following upcoming execution phases:
+
+* **Phase 2: Semantic Memory & Vector RAG Pipeline** Integration of an asynchronous vector database layer (**ChromaDB**) to support hierarchical file ingestions, sliding-window semantic chunking, and persistent long-term conversation memory.
+* **Phase 3: Autonomous Desktop Orchestration & Tool Use**
+  Implementation of structured JSON function-calling schemas allowing the local LLM to execute secure runtime system operations, cross-platform file automation, and ambient status monitoring.
 
 ---
 
-## API Reference
+## 📄 License & Terms
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/health` | System health check |
-| GET | `/api/models` | List available Ollama models |
-| POST | `/api/conversations` | Create conversation |
-| GET | `/api/conversations` | List all conversations |
-| GET | `/api/conversations/:id` | Get conversation + messages |
-| PATCH | `/api/conversations/:id` | Rename conversation |
-| DELETE | `/api/conversations/:id` | Delete conversation |
-| POST | `/api/chat` | Stream chat response (SSE) |
-| POST | `/api/files/upload` | Upload file |
-| GET | `/api/files/:id` | Download file |
-
----
-
-## Phase Roadmap
-
-- [x] **Phase 1** — Foundation: UI, chat, Ollama, history, file upload
-- [ ] **Phase 2** — Memory: Vector DB, RAG, semantic search
-- [ ] **Phase 3** — Tools: Web search, code execution, shell
-- [ ] **Phase 4** — Automation: Browser control, workflow engine
-- [ ] **Phase 5** — Voice: STT/TTS, wake word detection
-- [ ] **Phase 6** — Desktop: Electron wrapper, OS integration
-
----
-
-## Environment Variables
-
-### Backend (`.env`)
-
-| Variable | Default | Description |
-|---|---|---|
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama endpoint |
-| `OLLAMA_DEFAULT_MODEL` | `llama3` | Default model |
-| `DATABASE_URL` | SQLite local | Async DB URL |
-| `UPLOAD_DIR` | `./storage/uploads` | File storage path |
-| `MAX_UPLOAD_SIZE_MB` | `50` | Max upload size |
-| `ALLOWED_ORIGINS` | localhost:3000 | CORS origins |
-
-### Frontend (`.env.local`)
-
-| Variable | Default | Description |
-|---|---|---|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000/api` | Backend API URL |
+Distributed under the MIT License. See `LICENSE` for more information. Developed with precision for advanced portfolio demonstration.
