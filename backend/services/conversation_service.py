@@ -121,16 +121,40 @@ class ConversationService:
         return list(result.scalars().all())
 
     async def auto_title(self, db: AsyncSession, conversation_id: str, first_message: str) -> None:
-        """Generate a title from the first user message."""
+        print("===== AUTO TITLE START =====")
+
         title = first_message[:60].strip()
         if len(first_message) > 60:
-            title += "…"
+            title += "..."
+
         stmt = select(Conversation).where(Conversation.id == conversation_id)
         result = await db.execute(stmt)
         conversation = result.scalar_one_or_none()
-        if conversation and conversation.title == "New Conversation":
+
+        print("Conversation ID:", conversation_id)
+        print("Generated Title:", title)
+
+        if conversation:
+            print("Current DB Title:", conversation.title)
+        else:
+            print("Conversation NOT FOUND")
+
+        DEFAULT_TITLES = {
+            "New Conversation",
+            "New Intelligence Session",
+            "Untitled Operation",
+        }
+
+        if conversation and conversation.title in DEFAULT_TITLES:
+            print("UPDATING TITLE...")
             conversation.title = title
             await db.commit()
+            await db.refresh(conversation)
+            print("NEW TITLE:", conversation.title)
+        else:
+            print("TITLE NOT UPDATED")
+
+        print("===== AUTO TITLE END =====")
 
 
 def get_conversation_service() -> ConversationService:

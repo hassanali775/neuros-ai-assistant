@@ -9,6 +9,13 @@ from models.database import FileAttachment
 from models.schemas import FileUploadResponse
 from config import get_settings
 
+# Import specialized file parsers
+from pypdf import PdfReader
+try:
+    from pptx import Presentation
+except ImportError:
+    Presentation = None
+
 settings = get_settings()
 
 ALLOWED_MIME_TYPES = {
@@ -26,6 +33,8 @@ ALLOWED_MIME_TYPES = {
     "image/png",
     "image/gif",
     "image/webp",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation"
 }
 
 
@@ -36,17 +45,14 @@ class FileService:
         self.max_size = settings.max_upload_size_mb * 1024 * 1024
 
     async def upload(self, db: AsyncSession, file: UploadFile) -> FileUploadResponse:
-        # Read content
         content = await file.read()
 
-        # Validate size
         if len(content) > self.max_size:
             raise HTTPException(
                 status_code=413,
                 detail=f"File too large. Maximum size: {settings.max_upload_size_mb}MB"
             )
 
-        # Detect MIME type
         mime_type = file.content_type or "application/octet-stream"
         if mime_type == "application/octet-stream":
             guessed, _ = mimetypes.guess_type(file.filename or "")
@@ -58,20 +64,17 @@ class FileService:
                 detail=f"Unsupported file type: {mime_type}"
             )
 
-        # Generate unique filename
         file_id = str(uuid.uuid4())
         ext = Path(file.filename or "file").suffix
         stored_name = f"{file_id}{ext}"
         file_path = self.upload_dir / stored_name
 
-        # Write to disk
         with open(file_path, "wb") as f:
             f.write(content)
 
-        # Persist metadata (no message_id yet — linked on send)
         attachment = FileAttachment(
             id=file_id,
-            message_id="pending",  # Will be updated when message is created
+            message_id="pending",
             filename=stored_name,
             original_name=file.filename or "unnamed",
             mime_type=mime_type,
@@ -89,15 +92,48 @@ class FileService:
         )
 
     async def read_text(self, file_id: str) -> str | None:
-        """Read text content of an uploaded file."""
-        stmt_path = self.upload_dir
-        for f in stmt_path.iterdir():
+        """Safely extracts clear text layers from text files, PDFs, and PPTX slideshows."""
+        target_file = None
+        for f in self.upload_dir.iterdir():
             if f.stem == file_id:
-                try:
-                    return f.read_text(encoding="utf-8", errors="replace")
-                except Exception:
+                target_file = f
+                break
+
+        if not target_file or not target_file.exists():
+            return None
+
+        file_ext = target_file.suffix.lower()
+
+        try:
+            # 1. HANDLE BINARY PDFs
+            if file_ext == ".pdf":
+                reader = PdfReader(target_file)
+                extracted_text = []
+                for page in reader.pages:
+                    text_layer = page.extract_text()
+                    if text_layer:
+                        extracted_text.append(text_layer)
+                return "\n".join(extracted_text).strip() if extracted_text else None
+
+            # 2. HANDLE BINARY POWERPOINT SLIDES
+            if file_ext in [".pptx", ".ppt"]:
+                if not Presentation:
+                    print("──> [FILE ENGINE] python-pptx library is missing.")
                     return None
-        return None
+                prs = Presentation(target_file)
+                extracted_text = []
+                for slide in prs.slides:
+                    for shape in slide.shapes:
+                        if hasattr(shape, "text") and shape.text.strip():
+                            extracted_text.append(shape.text.strip())
+                return "\n".join(extracted_text).strip() if extracted_text else None
+
+            # 3. HANDLE STANDARD TEXT/CODE FORMATS
+            return target_file.read_text(encoding="utf-8", errors="replace")
+
+        except Exception as e:
+            print(f"──> [FILE ENGINE ERROR] Critical parsing block drop for {target_file.name}: {e}")
+            return None
 
     async def get_by_id(self, db: AsyncSession, file_id: str) -> FileAttachment | None:
         stmt = select(FileAttachment).where(FileAttachment.id == file_id)

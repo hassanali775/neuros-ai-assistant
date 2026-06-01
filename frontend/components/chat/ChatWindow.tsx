@@ -81,9 +81,12 @@ export function ChatWindow() {
       ) : (
         /* Message list */
         <div className="py-4">
-          {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))}
+          {messages.map((msg, index) => (
+  <MessageBubble 
+    key={`${msg.id}-${msg.role}-${index}`} 
+    message={msg} 
+  />
+))}
           <div ref={bottomRef} className="h-px" />
         </div>
       )}

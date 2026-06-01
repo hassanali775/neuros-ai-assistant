@@ -83,19 +83,34 @@ export function useChat() {
             store.appendStreamToken(placeholderId, token);
           },
 
-          onDone: (finalMsgId) => {
-            const finalMsg = useChatStore
-              .getState()
-              .messages.find((m) => m.id === placeholderId);
-            const finalContent = finalMsg?.streamContent ?? "";
-            store.finalizeStreamMessage(placeholderId, finalMsgId, finalContent);
-            store.setStreaming(false, null);
-            store.updateConversation(conversationId!, {
-              message_count:
-                (store.conversations.find((c) => c.id === conversationId)?.message_count ?? 0) + 2,
-              updated_at: new Date().toISOString(),
-            });
-          },
+          onDone: async (finalMsgId) => {
+    const finalMsg = useChatStore
+      .getState()
+      .messages.find((m) => m.id === placeholderId);
+
+    const finalContent = finalMsg?.streamContent ?? "";
+
+    store.finalizeStreamMessage(
+      placeholderId,
+      finalMsgId,
+      finalContent
+    );
+
+    store.setStreaming(false, null);
+
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/conversations"
+      );
+
+      if (response.ok) {
+        const conversations = await response.json();
+        store.setConversations(conversations);
+      }
+    } catch (err) {
+      console.error("Failed to refresh conversations", err);
+    }
+  },
 
           onError: (error) => {
             store.updateMessage(placeholderId, {
