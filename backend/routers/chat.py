@@ -12,7 +12,9 @@ from services.vector_service import get_vector_service, VectorService
 from services.chunking_service import get_chunking_service, ChunkingService
 from services.command_service import get_command_service, CommandService
 from services.file_system_service import get_file_system_service, FileSystemService
-from services.sandbox_service import get_sandbox_service, SandboxService  # <── PHASE 4 INJECTION
+from services.sandbox_service import get_sandbox_service, SandboxService
+from services.profile_service import get_profile_service, ProfileService
+from services.linkedin_service import get_linkedin_service, LinkedInService
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -40,7 +42,10 @@ Use this block immediately after creating a script if the user explicitly asks y
 [FILENAME_TO_EXECUTE, e.g., script.py]
 :::END:::
 
-Current capabilities: AI chat, file analysis, conversation memory, terminal execution automation, local file generation system, execution sandbox environment."""
+CRITICAL FUNCTION 4 - PROFESSIONAL PROFILE & LINKEDIN ENGINE:
+When compiling or updating the user's professional profile structural overview, save the asset precisely with the filename 'professional_profile.json'. The backend data system will intercept and record it to their deep profile storage automatically.
+
+Current capabilities: AI chat, file analysis, conversation memory, terminal execution automation, local file generation system, execution sandbox environment, professional profile compiler."""
 
 
 @router.post("")
@@ -54,7 +59,9 @@ async def chat(
     chunking_service: ChunkingService = Depends(get_chunking_service),
     command_service: CommandService = Depends(get_command_service),
     file_system_service: FileSystemService = Depends(get_file_system_service),
-    sandbox_service: SandboxService = Depends(get_sandbox_service),  # <── Inject Sandbox Engine
+    sandbox_service: SandboxService = Depends(get_sandbox_service),
+    profile_service: ProfileService = Depends(get_profile_service),  
+    linkedin_service: LinkedInService = Depends(get_linkedin_service),
 ):
     conversation = await conv_service.get_by_id(db, request.conversation_id)
     if not conversation:
@@ -78,6 +85,20 @@ async def chat(
 
     historical_messages = await conv_service.get_messages(db, request.conversation_id)
 
+    # ─── SAFE CONTEXT BUILDER ───
+    dynamic_system_prompt = NEUROS_SYSTEM_PROMPT
+    
+    try:
+        is_linkedin_req = any(kw in user_content.lower() for kw in ["linkedin", "profile post", "draft a post", "portfolio post"])
+        if is_linkedin_req:
+            dynamic_system_prompt += "\n\n" + linkedin_service.format_generation_prompt(user_content)
+            
+        profile_res = profile_service.get_profile_data()
+        if profile_res.get("success") and profile_res.get("data"):
+            dynamic_system_prompt += f"\n\n[ACTIVE USER PROFILE MATRIX]:\n{json.dumps(profile_res['data'], indent=2)}"
+    except Exception as context_err:
+        print(f"──> [ROUTER WARNING] Context augmentation bypassed: {context_err}")
+
     user_msg = await conv_service.add_message(
         db=db, conversation_id=request.conversation_id, role=MessageRole.user, content=user_content
     )
@@ -94,7 +115,6 @@ async def chat(
     else:
         file_context_chunks = await vector_service.query_file_knowledge(request.conversation_id, user_content, limit=4)
     
-    dynamic_system_prompt = NEUROS_SYSTEM_PROMPT
     if past_memories:
         dynamic_system_prompt += "\n\n[RELEVANT SYSTEM MEMORIES]:\n" + "\n".join([f"- {m['content']}" for m in past_memories])
 
@@ -143,25 +163,43 @@ async def chat(
                     yield f"data: {StreamChunk(type='token', content=err_dec).model_dump_json()}\n\n"
 
             # ─── INTERCEPTOR LAYER B: FILE GENERATION ───
-            if ":::WRITE_FILE:::" in full_response and (":::END:::" in full_response or ":::END::" in full_response):
+            has_explicit_tags = ":::WRITE_FILE:::" in full_response and (":::END:::" in full_response or ":::END::" in full_response)
+            has_standalone_profile_json = "professional_profile.json" in full_response and "```json" in full_response
+            
+            if has_explicit_tags or has_standalone_profile_json:
                 try:
-                    end_marker = ":::END:::" if ":::END:::" in full_response else ":::END::"
-                    parts = full_response.split(":::WRITE_FILE:::")
-                    meta_and_content = parts[1].split(end_marker)[0]
+                    filename = ""
+                    file_data = ""
                     
-                    filename = meta_and_content.split(":::CONTENT:::")[0].strip()
-                    file_data = meta_and_content.split(":::CONTENT:::")[1].strip()
-                    
+                    if has_explicit_tags:
+                        end_marker = ":::END:::" if ":::END:::" in full_response else ":::END::"
+                        parts = full_response.split(":::WRITE_FILE:::")
+                        meta_and_content = parts[1].split(end_marker)[0]
+                        filename = meta_and_content.split(":::CONTENT:::")[0].strip()
+                        file_data = meta_and_content.split(":::CONTENT:::")[1].strip()
+                    else:
+                        filename = "professional_profile.json"
+                        json_extract = full_response.split("```json")[1].split("```")[0].strip()
+                        file_data = json_extract
+
                     if file_data.startswith("```"):
                         file_data = "\n".join(file_data.splitlines()[1:])
                     if file_data.endswith("```"):
                         file_data = "\n".join(file_data.splitlines()[:-1])
                     file_data = file_data.strip()
 
-                    status_chunk = StreamChunk(type="token", content=f"\n\n📝 *NEUROS Core compiling document asset: `{filename}`...*\n")
+                    status_chunk = StreamChunk(type="token", content=f"\n\n📝 *NEUROS Core capturing and compiling profile asset: `{filename}`...*\n")
                     yield f"data: {status_chunk.model_dump_json()}\n\n"
                     
                     result = file_system_service.write_local_file(filename, file_data)
+                    
+                    if filename == "professional_profile.json":
+                        try:
+                            profile_json = json.loads(file_data)
+                            profile_service.save_profile_data(profile_json)
+                        except Exception as json_parse_err:
+                            print(f"──> [ROUTER WARNING] Profile Data capture schema failed validation: {json_parse_err}")
+
                     output_decorator = f"\n✅ *System Message*: {result['output']}\n"
                     full_response += status_chunk.content + output_decorator
                     yield f"data: {StreamChunk(type='token', content=output_decorator).model_dump_json()}\n\n"
@@ -180,7 +218,6 @@ async def chat(
                     status_chunk = StreamChunk(type="token", content=f"\n\n🚀 *NEUROS Core initializing local sandbox runtime for: `{filename}`...*\n")
                     yield f"data: {status_chunk.model_dump_json()}\n\n"
                     
-                    # Call the execution runtime engine
                     result = sandbox_service.execute_python_script(filename)
                     output_decorator = f"\n```python-sandbox\n{result['output']}\n```\n"
                     
