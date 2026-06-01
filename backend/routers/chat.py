@@ -15,6 +15,7 @@ from services.file_system_service import get_file_system_service, FileSystemServ
 from services.sandbox_service import get_sandbox_service, SandboxService
 from services.profile_service import get_profile_service, ProfileService
 from services.linkedin_service import get_linkedin_service, LinkedInService
+from services.agent_orchestrator import get_agent_orchestrator, AgentOrchestrator
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -62,12 +63,13 @@ async def chat(
     sandbox_service: SandboxService = Depends(get_sandbox_service),
     profile_service: ProfileService = Depends(get_profile_service),  
     linkedin_service: LinkedInService = Depends(get_linkedin_service),
+    orchestrator: AgentOrchestrator = Depends(get_agent_orchestrator),
 ):
     conversation = await conv_service.get_by_id(db, request.conversation_id)
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    user_content = request.message
+    user_content = request.message if request.message else ""
     immediate_file_chunks = []
 
     if request.file_ids:
@@ -85,19 +87,34 @@ async def chat(
 
     historical_messages = await conv_service.get_messages(db, request.conversation_id)
 
-    # ─── SAFE CONTEXT BUILDER ───
-    dynamic_system_prompt = NEUROS_SYSTEM_PROMPT
+    # ─── SECURE RUNTIME CONTEXT BUILDER ───
+    dynamic_system_prompt = str(NEUROS_SYSTEM_PROMPT)
     
     try:
+        # 1. Check for LinkedIn processing requests safely
         is_linkedin_req = any(kw in user_content.lower() for kw in ["linkedin", "profile post", "draft a post", "portfolio post"])
-        if is_linkedin_req:
-            dynamic_system_prompt += "\n\n" + linkedin_service.format_generation_prompt(user_content)
+        if is_linkedin_req and linkedin_service:
+            linkedin_prompt = linkedin_service.format_generation_prompt(user_content)
+            if linkedin_prompt:
+                dynamic_system_prompt += "\n\n" + str(linkedin_prompt)
             
-        profile_res = profile_service.get_profile_data()
-        if profile_res.get("success") and profile_res.get("data"):
-            dynamic_system_prompt += f"\n\n[ACTIVE USER PROFILE MATRIX]:\n{json.dumps(profile_res['data'], indent=2)}"
+        # 2. Extract profile variables safely without crash loops
+        if profile_service:
+            profile_res = profile_service.get_profile_data()
+            if isinstance(profile_res, dict) and profile_res.get("success") and profile_res.get("data"):
+                dynamic_system_prompt += f"\n\n[ACTIVE USER PROFILE MATRIX]:\n{json.dumps(profile_res['data'], indent=2)}"
+            
+        # 3. Handle multi-agent routing mesh safely 
+        if orchestrator:
+            active_agents = orchestrator.determine_routing(user_content)
+            mesh_prompt = orchestrator.compile_multi_agent_prompt(user_content, active_agents)
+            if mesh_prompt:
+                dynamic_system_prompt += f"\n\n" + str(mesh_prompt)
     except Exception as context_err:
         print(f"──> [ROUTER WARNING] Context augmentation bypassed: {context_err}")
+
+    # Fallback to ensure clean string configuration
+    dynamic_system_prompt = str(dynamic_system_prompt).strip()
 
     user_msg = await conv_service.add_message(
         db=db, conversation_id=request.conversation_id, role=MessageRole.user, content=user_content
