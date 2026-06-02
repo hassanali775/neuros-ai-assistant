@@ -40,13 +40,21 @@ neuros/
 └── .gitignore            # Explicit Repository Security Filter
 ---
 
-## 🔮 Strategic Development Roadmap
+## 🚀 Completed Core Architecture & Engineering Features (Phase 6 Specs)
 
-To elevate NEUROS from a local core architecture into a production-grade enterprise asset, development is structured across the following upcoming execution phases:
+NEUROS has been upgraded from a basic local chat interface into a fully functional, event-driven local AI operating system assistant capable of autonomous host execution.
 
-* **Phase 2: Semantic Memory & Vector RAG Pipeline** Integration of an asynchronous vector database layer (**ChromaDB**) to support hierarchical file ingestions, sliding-window semantic chunking, and persistent long-term conversation memory.
-* **Phase 3: Autonomous Desktop Orchestration & Tool Use**
-  Implementation of structured JSON function-calling schemas allowing the local LLM to execute secure runtime system operations, cross-platform file automation, and ambient status monitoring.
+* **Asynchronous Token Stream Interception:** Implemented a real-time stream parser within the FastAPI application layer. The backend monitors the incoming LLM token generation generator mid-flight. When structural execution macro tags (`:::WRITE_FILE:::`, `:::RUN_SCRIPT:::`) are detected, the system safely pauses the text stream client response and triggers native host automation workflows.
+* **Isolated Subprocess Sandbox Runtime:** Deployed secure, non-blocking `subprocess.Popen` execution blocks wrapped with strict execution timeouts. This runtime compiles and runs generated Python code scripts in isolation, captures real-time `stdout`/`stderr` compiler diagnostics, and streams execution metrics straight back to the user interface.
+* **Machine Path Virtualization:** Engineered a macro routing layer to resolve directory and path collision bugs across cross-platform environments (handling Windows local paths vs. active OneDrive folder synchronization abstracts smoothly).
+* **Agentic Mesh Orchestration:** Implemented a dynamic `AgentOrchestrator` system. The core LLM parses input prompts and programmatically hands off execution context to specialized sub-agents (`kernel_engineer` and `brand_strategist`) behind the scenes depending on system complexity.
+* **Live Telemetry Monitor Interface:** Re-engineered the Next.js frontend with an industrial, high-density telemetry console side-panel. This component hooks directly into the centralized Zustand state store to expose real-time sandbox states, active sub-agent threads, and system containment flags.
+
+---
+
+## 🔮 Next Phase Engineering Roadmap
+
+* **Phase 7: Long-Term Memory Vector RAG Pipeline:** Integration of an asynchronous vector database layer (**ChromaDB**) to support hierarchical workspace file ingestion and sliding-window semantic chunk indexing.
 
 ---
 
