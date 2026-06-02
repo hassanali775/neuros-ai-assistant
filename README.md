@@ -1,32 +1,32 @@
-# NEUROS 🧠
+# NEUROS
 
-NEUROS is a high-performance, AI-native operating system assistant designed to operate fully locally on consumer-grade hardware. By pairing an asynchronous backend framework with a lightning-fast streaming telemetry interface, NEUROS establishes a secure, private environment for advanced conversational logic, multi-agent orchestration, and isolated host file system intelligence.
-
----
-
-## 🛠️ Core Architecture & Tech Stack
-
-NEUROS is structured as a decoupled, high-performance monorepo maximizing modern asynchronous protocols:
-
-* **Frontend Interface:** Built using Next.js 15, TypeScript, and Tailwind CSS. State synchronization, non-blocking streaming data flows, and live system telemetry layout states are managed via a centralized Zustand store architecture.
-* **Backend Service:** Powering the application layer is FastAPI (Python), utilizing asynchronous request pooling, custom modular routers, and structured Pydantic data validation pipelines.
-* **Local Inference Engine:** Driven entirely by Ollama, orchestrating local deployment of specialized language models over a persistent localhost loopback adapter—ensuring 100% data privacy with zero third-party cloud API dependencies.
+NEUROS is a high-performance, AI-native operating system assistant designed to execute low-latency contextual tasks and isolated host system automation. Pairing an asynchronous backend architecture with an event-driven telemetry interface, the platform establishes a local sandbox environment for multi-agent collaboration with zero reliance on third-party cloud APIs.
 
 ---
 
-## 🚀 Key Engineering Features (Phase 6 Specs Locked)
+## Technical Architecture & Dependencies
 
-* **Asynchronous Token Stream Interception:** Implemented a real-time stream parser within the FastAPI application layer. The backend monitors the incoming LLM token stream generator mid-flight. When structural execution macro tags (`:::WRITE_FILE:::`, `:::RUN_SCRIPT:::`) are detected, the system safely pauses the client-side text generation response and triggers native host automation workflows.
-* **Isolated Subprocess Sandbox Runtime:** Deployed secure, non-blocking `subprocess.Popen` execution blocks wrapped with strict execution timeouts. This runtime compiles and runs generated Python scripts in isolation, captures real-time `stdout`/`stderr` compiler diagnostics, and streams execution metrics straight back to the user interface state.
-* **Machine Path Virtualization:** Engineered a macro routing layer to safely handle and resolve path directory collisions across cross-platform environments (handling Windows local paths vs. active OneDrive folder synchronization abstracts smoothly).
-* **Agentic Mesh Orchestration:** Implemented a dynamic `AgentOrchestrator` system. The core LLM parses input prompts and programmatically hands off execution context to specialized sub-agents (`kernel_engineer` and `brand_strategist`) behind the scenes depending on system complexity.
-* **Live Telemetry Monitor Interface:** Re-engineered the Next.js frontend with an industrial, high-density telemetry console side-panel. This component hooks directly into the centralized Zustand state store to expose real-time sandbox states, active sub-agent threads, and system containment flags transparently.
-* **Strict Type Safety:** Complete end-to-end type safety mapping backend Pydantic schemas directly to TypeScript interfaces in the frontend workspace, preventing runtime data-structure mutations.
-* **Production Build Management:** Fully containerized setup leveraging a multi-stage Docker environment alongside orchestrated multi-container setups via Docker Compose for seamless local deployment.
+The system is structured as a decoupled full-stack monorepo maximizing non-blocking asynchronous runtimes:
+
+* **Frontend Engine:** Next.js 15 (App Router), TypeScript, and Tailwind CSS. State propagation, real-time data streaming, and live system telemetry layout states are managed via a centralized Zustand store.
+* **Backend Core:** FastAPI (Python) utilizing asynchronous request pooling, custom modular routing, and structured Pydantic data validation pipelines.
+* **Local Inference:** Orchestrated via Ollama, routing localized language models over a persistent local loopback adapter to ensure absolute operational data privacy.
 
 ---
 
-## 📂 Repository Blueprint
+## Core Engineering Implementations (Phase 6 Specs Active)
+
+* **Asynchronous Token Stream Interception:** Built a real-time stream parser within the FastAPI application layer. The backend monitors the incoming LLM token generation stream mid-flight. Upon detecting structural execution macro tags (`:::WRITE_FILE:::`, `:::RUN_SCRIPT:::`), the pipeline intercepts the stream, pauses the client-side text generation display, and triggers native host automation workflows.
+* **Isolated Subprocess Sandbox Runtime:** Deployed secure, non-blocking `subprocess.Popen` execution blocks wrapped with strict execution timeouts. This runtime compiles and runs generated Python scripts in isolation, captures real-time `stdout`/`stderr` diagnostics, and pipes live execution metrics directly back to the UI state layer.
+* **Machine Path Virtualization:** Engineered a macro routing layer to handle and resolve path directory collisions across cross-platform environments, abstracting local Windows paths and active OneDrive cloud-synchronized folder overrides cleanly.
+* **Agentic Mesh Orchestration:** Deployed a dynamic `AgentOrchestrator` system. The core model programmatically parses prompts and delegates execution context to specialized sub-agents (`kernel_engineer` and `brand_strategist`) based on task complexity.
+* **Live Telemetry Monitor Interface:** Engineered an industrial, high-density system status side panel in Next.js. This component hooks directly into the global Zustand store to expose real-time sandbox flags, active sub-agent threads, and system containment parameters transparently.
+* **End-to-End Type Safety:** Mapped backend Pydantic validation schemas directly to TypeScript interfaces in the frontend workspace, preventing runtime data-structure mutations across the network boundary.
+* **Build Management:** Fully containerized architecture leveraging a multi-stage Docker environment alongside orchestrated multi-container services via Docker Compose for uniform local deployment.
+
+---
+
+## Repository Structure
 
 ```text
 neuros/
@@ -42,3 +42,6 @@ neuros/
 │   └── main.py           # Application Gateway & Lifespan Hooks
 ├── docker-compose.yml    # Multi-Service Local Container Orchestration
 └── .gitignore            # Monorepo Security & Dependency Filter
+
+Strategic Roadmap
+Phase 7: Long-Term Memory Vector RAG Pipeline: Integration of an asynchronous vector database layer (ChromaDB) to support hierarchical workspace file ingestion and sliding-window semantic chunk indexing.
